@@ -18,7 +18,7 @@ namespace LabbAPI.Controllers
             _context = context;
         }
 
-        //------------- Get All Persons ----------------//
+        //------------- Get All Persons -----------------//
         [HttpGet(Name = "GetAllPersons")]
         public async Task<ActionResult<GetPersonDto>> GetPersons()
         {
@@ -44,7 +44,7 @@ namespace LabbAPI.Controllers
                 .Select(p => new GetPersonInterestDto
                 {
                     FirstName = p.FirstName,
-                    LastName = p.LastName
+                    LastName = p.LastName,
                 })
                 .FirstOrDefaultAsync();
 
@@ -57,8 +57,10 @@ namespace LabbAPI.Controllers
                 .Where(pi => pi.PersonId == personId)
                 .Select(pi => new InterestDto
                 {
+                    Id = pi.Interest.Id,
                     Title = pi.Interest.Title,
-                    Description = pi.Interest.Description
+                    Description = pi.Interest.Description,
+                    Url = pi.Link.Select(l => l.Url).ToList()
                 })
                 .ToListAsync();
 
