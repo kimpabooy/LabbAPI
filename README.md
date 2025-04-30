@@ -71,8 +71,11 @@ https://localhost:7072/api/Person/{personId}/Interest
   "lastName": "string",
   "interests": [
     {
-      "title": "string"
-      "description": "string"
+      "title": "string",
+      "description": "string",
+      "url": [
+        "string"
+      ]
     }
   ]
 }
