@@ -18,7 +18,7 @@ namespace LabbAPI.Controllers
             _context = context;
         }
 
-        //------------- Get All Persons ----------------//
+        //------------- Get All Persons -----------------//
         [HttpGet(Name = "GetAllPersons")]
         public async Task<ActionResult<GetPersonDto>> GetPersons()
         {
