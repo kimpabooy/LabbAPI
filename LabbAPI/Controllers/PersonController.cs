@@ -38,13 +38,13 @@ namespace LabbAPI.Controllers
         [HttpGet("{personId}/Interest", Name = "GetPersonInterestById")]
         public async Task<ActionResult<GetPersonInterestDto>> GetIntrestOfPerson(int personId)
         {
+
             var person = await _context.Person
                 .Where(p => p.Id == personId)
                 .Select(p => new GetPersonInterestDto
                 {
                     FirstName = p.FirstName,
-                    LastName = p.LastName,
-                    Interests = new List<InterestDto>()
+                    LastName = p.LastName
                 })
                 .FirstOrDefaultAsync();
 
@@ -57,7 +57,8 @@ namespace LabbAPI.Controllers
                 .Where(pi => pi.PersonId == personId)
                 .Select(pi => new InterestDto
                 {
-                    Title = pi.Interest.Title
+                    Title = pi.Interest.Title,
+                    Description = pi.Interest.Description
                 })
                 .ToListAsync();
 
@@ -148,8 +149,8 @@ namespace LabbAPI.Controllers
 
             _context.PersonInterest.Add(newPersonInterest);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetIntrestOfPerson), new { id = personId }, newPersonInterest);
+           
+            return CreatedAtAction(nameof(GetIntrestOfPerson), new { personId = personId }, newPersonInterest);
         }
         
         //------------- Add New URL To An Interest And Person ----------------//
