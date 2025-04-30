@@ -139,7 +139,7 @@ namespace LabbAPI.Controllers
             {
                 return BadRequest($"Personen är redan kopplad till intresset >{interest.Title}<.");
             }
-
+            // kolla upp detta!!!!!!
             var newPersonInterest = new PersonInterest
             {
                 PersonId = personId,
