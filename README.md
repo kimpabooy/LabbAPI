@@ -27,7 +27,7 @@ https://localhost:7072/api/Person
 **Request**
 ````
 {
-  "id": 0,
+  "id": int,
   "firstName": "string",
   "lastName": "string",
   "telefonnummer": "string",
