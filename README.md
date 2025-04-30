@@ -71,6 +71,7 @@ https://localhost:7072/api/Person/{personId}/Interest
   "lastName": "string",
   "interests": [
     {
+      "id": int,
       "title": "string",
       "description": "string",
       "url": [
@@ -88,14 +89,13 @@ Hämtar intressen för en person genom att ange personens ID.
 **Exempel Response:**
 ````
 {
-  "firstName": "Kim",
-  "lastName": "Andersson",
-  "interests": [
-    {
-      "title": "Coding"
+      "id": 12,
+      "title": "ölhävning",
+      "description": "Dricker mängder med öl",
+      "url": [
+        "https://www.bordershop.com/se"
+      ]
     }
-  ]
-}
 ````
 </details>
 
