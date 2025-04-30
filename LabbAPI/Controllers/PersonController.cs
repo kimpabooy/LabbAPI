@@ -18,100 +18,88 @@ namespace LabbAPI.Controllers
             _context = context;
         }
 
-        // OK
-        // Get all persons.
+        //------------- Get All Persons ----------------//
         [HttpGet(Name = "GetAllPersons")]
-        public async Task<ActionResult<Person>> GetPersons()
+        public async Task<ActionResult<GetPersonDto>> GetPersons()
         {
-            return Ok(await _context.Person.Select(p => new
-            {
-                p.FirstName,
-                p.LastName,
-                p.Telefonnummer,
-                p.Email
-            }
-            ).ToListAsync());
+            return Ok(await _context.Person
+                .Select(p => new GetPersonDto
+                {
+                    Id = p.Id,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Telefonnummer = p.Telefonnummer,
+                    Email = p.Email
+                })
+                .ToListAsync());
         }
 
-       
-        
-        // Get person by ID.
-        [HttpGet("{id}", Name = "GetPersonById")]
-        public async Task<ActionResult<Interest>> GetIntrestOfPerson(int id)
+        //------------- Get Person's Interest By Id ----------------//
+        [HttpGet("{personId}/Interest", Name = "GetPersonInterestById")]
+        public async Task<ActionResult<GetPersonInterestDto>> GetIntrestOfPerson(int personId)
         {
             var person = await _context.Person
-                .Where(p => p.Id == id)
-                .Select(p => new
+                .Where(p => p.Id == personId)
+                .Select(p => new GetPersonInterestDto
                 {
-                    p.FirstName,
-                    p.LastName,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Interests = new List<InterestDto>()
                 })
-                .Distinct()
                 .FirstOrDefaultAsync();
-            
+
             if (person == null)
             {
-                return NotFound(new { errorMessage = "Person med id " + id + " hittades inte." });
+                return NotFound(new { errorMessage = $"Person med id {personId} hittades inte." });
             }
 
-            var personInterest = await _context.PersonInterest
-                .Where(pi => pi.PersonId == id)
-                .Select(pi => new
+            var interests = await _context.PersonInterest
+                .Where(pi => pi.PersonId == personId)
+                .Select(pi => new InterestDto
                 {
-                    pi.Interest.Title,
+                    Title = pi.Interest.Title
                 })
-                //.Distinct()
                 .ToListAsync();
 
-            if (personInterest == null)
-            {
-                return NotFound(new { errorMessage = "Inget intresse hittades." });
-            }
+            person.Interests = interests;
 
-            /*
-                var interest = await _context.PersonInterest
-                    .Where(a => person.a.PersonId == id)
-                    .Select(a => a.Intrest)
-                    .ToListAsync();
-             */
-
-            // return person and personInterest
-            return Ok(new
-            {
-                person,
-                personInterest
-            });
+            return Ok(person);
         }
 
-       
-        
-        // OK
-        // Get all links of a persons interest by ID.
-        [HttpGet("{id}/Link", Name = "GetInterestAndLinks")]
-        public async Task<ActionResult<List<Link>>> GetLinks(int id)
+        //------------- Get All URL From Person By Id ----------------//
+        [HttpGet("{personId}/Link", Name = "GetInterestAndLinks")]
+        public async Task<ActionResult<GetLinkDto>> GetLinks(int personId)
         {
             // check if person excists
-            var person = await _context.Person.FindAsync(id);
+            var person = await _context.Person.FindAsync(personId);
             if (person == null)
             {
-                return NotFound(new { errorMessage = "Person med id " + id + " hittades inte." });
+                return NotFound(new { errorMessage = "Person med id " + personId + " hittades inte." });
             }
 
-            var personLinks = await _context.Link
-                .Where(pl => pl.PersonInterest.PersonId == id)
-                .Select(pl => new
+            var personLinks = await _context.PersonInterest
+                .Where(pi => pi.PersonId == personId)
+                .SelectMany(pi => pi.Link)
+                .Select(l => new GetLinkDto
                 {
-                    pl.Url
+                    Url = l.Url
                 })
                 .Distinct()
                 .ToListAsync();
 
-                return Ok(personLinks);
-        }
 
-       
-        // OK
-        // Lägg till ett nytt intresse och koppla det till en person.
+            //var personLinks = await _context.Link
+            //    .Where(pl => pl.PersonInterest.PersonId == personId)
+            //    .Select(pl => new GetLinkDto
+            //    {
+            //        Url = pl.Url
+            //    })
+            //    .ToListAsync();
+
+            return Ok(personLinks);
+        }
+        
+        //------------- Add New Interest To A Person ----------------//
         [HttpPost("{personId}/add-interest")]
         public async Task<IActionResult> AddOrCreateInterestToPerson(int personId, AddInterestRequest request)
         {
@@ -147,9 +135,9 @@ namespace LabbAPI.Controllers
             var existingPersonInterest = await _context.PersonInterest
                 .FirstOrDefaultAsync(pi => pi.PersonId == personId && pi.InterestId == interest.Id);
 
-            if (existingPersonInterest == null)
+            if (existingPersonInterest != null)
             {
-                return NotFound($"Personen är redan kopplad till intresset >{interest.Title}<.");
+                return BadRequest($"Personen är redan kopplad till intresset >{interest.Title}<.");
             }
 
             var newPersonInterest = new PersonInterest
@@ -163,20 +151,24 @@ namespace LabbAPI.Controllers
 
             return CreatedAtAction(nameof(GetIntrestOfPerson), new { id = personId }, newPersonInterest);
         }
-
-       
         
-        // OK
-        // Lägg till en ny länk till ett existerande intresse.
-        [HttpPost("{PersonId}/interests/{InterestId}/add-link")]
-        public async Task<IActionResult> AddLinkToPersonInterest(int PersonId, int InterestId, [FromBody] LinkDto responseDto)
+        //------------- Add New URL To An Interest And Person ----------------//
+        [HttpPost("{personId}/interests/{InterestId}/add-link")]
+        public async Task<IActionResult> AddLinkToPersonInterest(int personId, int InterestId, [FromBody] GetLinkDto responseDto)
         {
+            var person = await _context.Person.FindAsync(personId);
+
+            if (person == null)
+            {
+                return NotFound($"Person med id {personId} hittades inte.");
+            }
+            
             var personInterest = await _context.PersonInterest
-                .FirstOrDefaultAsync(pi => pi.PersonId == PersonId && pi.InterestId == InterestId);
+                .FirstOrDefaultAsync(pi => pi.PersonId == personId && pi.InterestId == InterestId);
 
             if (personInterest == null)
             {
-                return NotFound($"No interest found for person with id {PersonId} and interest id {InterestId}.");
+                return NotFound($"No interest found for person with id {personId} and interest id {InterestId}.");
             }
 
             if (string.IsNullOrWhiteSpace(responseDto.Url))
