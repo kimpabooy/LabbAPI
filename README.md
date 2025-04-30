@@ -89,6 +89,10 @@ Hämtar intressen för en person genom att ange personens ID.
 **Exempel Response:**
 ````
 {
+  "firstName": "Kim",
+  "lastName": "Andersson",
+  "interests": [
+    {
       "id": 12,
       "title": "ölhävning",
       "description": "Dricker mängder med öl",
@@ -96,6 +100,8 @@ Hämtar intressen för en person genom att ange personens ID.
         "https://www.bordershop.com/se"
       ]
     }
+  ]
+}
 ````
 </details>
 
